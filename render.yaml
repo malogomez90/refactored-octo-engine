@@ -1,0 +1,25 @@
+services:
+  - type: web
+    name: bot-telegram-profesional
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn run:app
+    envVars:
+      - key: FLASK_ENV
+        value: production
+      - key: BOT_TOKEN
+        value: 8343722743:AAEmNl5sea6rFotwUKfQqowMEwPFkUjIO6g
+      - key: BOT_USERNAME
+        value: antiviralbot
+      - key: SECRET_KEY
+        generateValue: true
+      - key: WEBHOOK_SECRET
+        generateValue: true
+      - key: LOG_LEVEL
+        value: INFO
+    autoDeploy: true
+    
+databases:
+  - name: bot-database
+    databaseName: bot_telegram_db
+    user: bot_user

@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Bot Telegram Profesional</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-content">
+                <h1><i class="fas fa-robot"></i> Bot Telegram Profesional</h1>
+                <div class="header-info">
+                    <span class="status online"><i class="fas fa-circle"></i> Activo</span>
+                    <span class="time" id="current-time"></span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Navigation -->
+        <nav class="sidebar">
+            <ul>
+                <li class="active"><a href="/"><i class="fas fa-chart-line"></i> Dashboard</a></li>
+                <li><a href="/users"><i class="fas fa-users"></i> Usuarios</a></li>
+                <li><a href="/messages"><i class="fas fa-comments"></i> Mensajes</a></li>
+                <li><a href="/settings"><i class="fas fa-cog"></i> Configuración</a></li>
+            </ul>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Stats Cards -->
+            <div class="stats-grid">
+                <div class="stat-card users">
+                    <div class="stat-icon">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3>{{ stats.total_users or 0 }}</h3>
+                        <p>Total Usuarios</p>
+                        <span class="stat-change positive">
+                            <i class="fas fa-arrow-up"></i> {{ stats.recent_users or 0 }} esta semana
+                        </span>
+                    </div>
+                </div>
+
+                <div class="stat-card active">
+                    <div class="stat-icon">
+                        <i class="fas fa-user-check"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3>{{ stats.active_users or 0 }}</h3>
+                        <p>Usuarios Activos</p>
+                        <span class="stat-change positive">
+                            <i class="fas fa-percentage"></i> {{ ((stats.active_users or 0) / (stats.total_users or 1) * 100) | round(1) }}% del total
+                        </span>
+                    </div>
+                </div>
+
+                <div class="stat-card messages">
+                    <div class="stat-icon">
+                        <i class="fas fa-comments"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3>{{ stats.total_messages or 0 }}</h3>
+                        <p>Total Mensajes</p>
+                        <span class="stat-change positive">
+                            <i class="fas fa-arrow-up"></i> {{ stats.recent_messages or 0 }} esta semana
+                        </span>
+                    </div>
+                </div>
+
+                <div class="stat-card engagement">
+                    <div class="stat-icon">
+                        <i class="fas fa-chart-bar"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3>{{ stats.avg_messages_per_user or 0 }}</h3>
+                        <p>Promedio Mensajes/Usuario</p>
+                        <span class="stat-change neutral">
+                            <i class="fas fa-chart-line"></i> Engagement
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Cards -->
+            <div class="actions-grid">
+                <div class="action-card broadcast">
+                    <h3><i class="fas fa-bullhorn"></i> Mensaje Masivo</h3>
+                    <p>Envía un mensaje a todos los usuarios activos</p>
+                    <div class="broadcast-form">
+                        <textarea id="broadcast-message" placeholder="Escribe tu mensaje aquí..."></textarea>
+                        <button onclick="sendBroadcast()" class="btn-primary">
+                            <i class="fas fa-paper-plane"></i> Enviar
+                        </button>
+                    </div>
+                </div>
+
+                <div class="action-card quick-stats">
+                    <h3><i class="fas fa-tachometer-alt"></i> Estadísticas en Tiempo Real</h3>
+                    <div class="real-time-stats">
+                        <div class="stat-item">
+                            <span class="label">Usuarios Conectados:</span>
+                            <span class="value" id="live-users">{{ stats.active_users or 0 }}</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="label">Mensajes Hoy:</span>
+                            <span class="value" id="messages-today">{{ stats.recent_messages or 0 }}</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="label">Última Actividad:</span>
+                            <span class="value" id="last-activity">Hace 2 minutos</span>
+                        </div>
+                    </div>
+                    <button onclick="refreshStats()" class="btn-secondary">
+                        <i class="fas fa-sync-alt"></i> Actualizar
+                    </button>
+                </div>
+
+                <div class="action-card system-info">
+                    <h3><i class="fas fa-server"></i> Estado del Sistema</h3>
+                    <div class="system-stats">
+                        <div class="system-item">
+                            <i class="fas fa-database"></i>
+                            <span>Base de Datos: <strong>Conectada</strong></span>
+                        </div>
+                        <div class="system-item">
+                            <i class="fas fa-robot"></i>
+                            <span>Bot: <strong>Activo</strong></span>
+                        </div>
+                        <div class="system-item">
+                            <i class="fas fa-globe"></i>
+                            <span>API: <strong>Funcionando</strong></span>
+                        </div>
+                        <div class="system-item">
+                            <i class="fas fa-shield-alt"></i>
+                            <span>Seguridad: <strong>HTTPS</strong></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Activity -->
+            <div class="activity-section">
+                <h3><i class="fas fa-history"></i> Actividad Reciente</h3>
+                <div class="activity-list" id="activity-list">
+                    <div class="activity-item">
+                        <div class="activity-icon user">
+                            <i class="fas fa-user-plus"></i>
+                        </div>
+                        <div class="activity-content">
+                            <strong>Nuevo usuario registrado</strong>
+                            <span class="activity-time">Hace 5 minutos</span>
+                        </div>
+                    </div>
+                    <div class="activity-item">
+                        <div class="activity-icon message">
+                            <i class="fas fa-comment"></i>
+                        </div>
+                        <div class="activity-content">
+                            <strong>{{ stats.recent_messages or 0 }} nuevos mensajes</strong>
+                            <span class="activity-time">Última hora</span>
+                        </div>
+                    </div>
+                    <div class="activity-item">
+                        <div class="activity-icon system">
+                            <i class="fas fa-cog"></i>
+                        </div>
+                        <div class="activity-content">
+                            <strong>Sistema actualizado</strong>
+                            <span class="activity-time">Hace 2 horas</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Scripts -->
+    <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+    <script>
+        // Actualizar tiempo en tiempo real
+        function updateTime() {
+            const now = new Date();
+            const timeString = now.toLocaleTimeString('es-ES');
+            const dateString = now.toLocaleDateString('es-ES');
+            document.getElementById('current-time').textContent = `${dateString} ${timeString}`;
+        }
+
+        // Función para refrescar estadísticas
+        async function refreshStats() {
+            try {
+                const response = await fetch('/api/stats');
+                const data = await response.json();
+                
+                if (data.success) {
+                    document.getElementById('live-users').textContent = data.data.active_users;
+                    document.getElementById('messages-today').textContent = data.data.total_messages;
+                    
+                    // Mostrar notificación de éxito
+                    showNotification('✅ Estadísticas actualizadas', 'success');
+                }
+            } catch (error) {
+                showNotification('❌ Error actualizando estadísticas', 'error');
+            }
+        }
+
+        // Función para enviar broadcast
+        async function sendBroadcast() {
+            const message = document.getElementById('broadcast-message').value.trim();
+            
+            if (!message) {
+                showNotification('⚠️ Por favor escribe un mensaje', 'warning');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/broadcast', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ message })
+                });
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    showNotification(`✅ Mensaje enviado a ${data.data.sent_to} usuarios`, 'success');
+                    document.getElementById('broadcast-message').value = '';
+                } else {
+                    showNotification(`❌ Error: ${data.error}`, 'error');
+                }
+            } catch (error) {
+                showNotification('❌ Error enviando mensaje', 'error');
+            }
+        }
+
+        // Sistema de notificaciones
+        function showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            notification.className = `notification ${type}`;
+            notification.textContent = message;
+            
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.classList.add('show');
+            }, 100);
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+                setTimeout(() => notification.remove(), 300);
+            }, 3000);
+        }
+
+        // Inicializar
+        updateTime();
+        setInterval(updateTime, 1000);
+        setInterval(refreshStats, 30000); // Actualizar cada 30 segundos
+    </script>
+</body>
+</html>
