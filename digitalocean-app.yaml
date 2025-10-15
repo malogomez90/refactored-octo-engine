@@ -1,0 +1,62 @@
+"""
+Configuración optimizada para DigitalOcean App Platform
+"""
+
+# App Spec para DigitalOcean
+name: mi-bot-telegram-profesional
+services:
+- name: web
+  source_dir: /
+  github:
+    repo: malogomez90/refactored-octo-engine
+    branch: main
+    deploy_on_push: true
+  
+  build_command: pip install -r requirements.txt
+  run_command: gunicorn run:app --bind 0.0.0.0:$PORT
+  
+  environment_slug: python
+  instance_count: 1
+  instance_size_slug: basic-xxs
+  
+  http_port: 5000
+  
+  health_check:
+    http_path: /health
+  
+  envs:
+  - key: BOT_TOKEN
+    value: "8343722743:AAEmNl5sea6rFotwUKfQqowMEwPFkUjIO6g"
+    type: SECRET
+  - key: BOT_USERNAME
+    value: "antiviralbot"
+  - key: FLASK_ENV
+    value: "production"
+  - key: SECRET_KEY
+    type: SECRET
+    value: "mi-clave-super-secreta-produccion-do"
+  - key: WEBHOOK_SECRET
+    type: SECRET
+    value: "mi-token-super-secreto-123"
+  - key: LOG_LEVEL
+    value: "INFO"
+  - key: PORT
+    value: "5000"
+
+databases:
+- name: bot-database
+  engine: PG
+  version: "13"
+  production: true
+  
+domains:
+- domain: mi-bot-telegram-profesional.com
+  type: PRIMARY
+  
+alerts:
+- rule: CPU_UTILIZATION
+  value: 80
+- rule: MEM_UTILIZATION  
+  value: 80
+- rule: RESTART_COUNT
+  value: 5
